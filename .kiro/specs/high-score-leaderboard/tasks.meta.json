@@ -1,0 +1,784 @@
+{
+  "pbtResults": {
+    "2.12 Write property test for letter cycling": {
+      "status": "passed",
+      "lastRunTimestamp": 1791993478657
+    },
+    "5.7 Write property test for the initials A–Z invariant": {
+      "status": "passed",
+      "lastRunTimestamp": 1791993965628
+    }
+  },
+  "executionHistory": {
+    "1. Set up dev-only test tooling (no runtime impact on `index.html`)": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992337675
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992353341
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992572701
+      }
+    ],
+    "2.1 Add constants and record validation": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992337848
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992577387
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992654949
+      }
+    ],
+    "2.2 Implement `addRecord(board, rec)` (non-mutating insert, stable order, trim)": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992338002
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992659852
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992752445
+      }
+    ],
+    "2.3 Implement `qualifies(board, finalScore)`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992338162
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992756775
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992830157
+      }
+    ],
+    "2.4 Implement `serializeLeaderboard` / `deserializeLeaderboard`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992338429
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992833006
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992878676
+      }
+    ],
+    "2.5 Implement `cycleLetter(ch, dir)`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992338605
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992881340
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992944694
+      }
+    ],
+    "2.6 Add the conditional `module.exports` guard at the end of the IIFE": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992338763
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992951161
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993105665
+      }
+    ],
+    "2.7 Write property test for insert ordering and length bound": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992338907
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993110195
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993403734
+      }
+    ],
+    "2.8 Write property test for equal-score tiebreak": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992339066
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993111529
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993404713
+      }
+    ],
+    "2.9 Write property test for the qualification predicate": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992339251
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993112516
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993406109
+      }
+    ],
+    "2.10 Write property test for serialization round-trip": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992339434
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993113909
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993407015
+      }
+    ],
+    "2.11 Write property test for deserialization robustness": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992339586
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993114475
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993407835
+      }
+    ],
+    "2.12 Write property test for letter cycling": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992339744
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993411428
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993487763
+      }
+    ],
+    "2.13 Write unit tests for `isValidRecord` edge cases": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992339896
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992660851
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992753444
+      }
+    ],
+    "3. Checkpoint - pure logic core": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992340088
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993496226
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993498456
+      }
+    ],
+    "4.1 Implement `loadLeaderboard` and `saveLeaderboard`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992340243
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993412504
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993488404
+      }
+    ],
+    "4.2 Write unit tests for persistence wiring with a fake `localStorage`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992340434
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993502382
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993739739
+      }
+    ],
+    "5.1 Add entry/control module-level state and `beginEntry`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992340580
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993503316
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993738957
+      }
+    ],
+    "5.2 Implement the pure `applyEntryKey(entryState, keyEvent)` reducer": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992340763
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993743009
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993814818
+      }
+    ],
+    "5.3 Implement `handleEntryKey(e)` wiring over the pure reducer": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992340937
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993824277
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994034641
+      }
+    ],
+    "5.4 Implement `confirmEntry()`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992341100
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994040766
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994092733
+      }
+    ],
+    "5.5 Extend the `module.exports` guard with `applyEntryKey`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992341271
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994098740
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994414543
+      }
+    ],
+    "5.6 Write property test for cursor movement bounds": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992341472
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993825695
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994036114
+      }
+    ],
+    "5.7 Write property test for the initials A–Z invariant": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992341639
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993826565
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994036987
+      }
+    ],
+    "5.8 Write property test for unrecognized-key no-op": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992341819
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993827399
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994037847
+      }
+    ],
+    "5.9 Write unit tests for entry init and confirm": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992341993
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994099654
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994413702
+      }
+    ],
+    "6.1 Add `ENTRY` to the `STATE` enum and clear transient state in `startPlaying`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992342142
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994418181
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994474042
+      }
+    ],
+    "6.2 Implement `endRound(reason)` and reroute the two `update()` end sites": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992342277
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994477804
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994548541
+      }
+    ],
+    "6.3 Write property test confirming the simulation does not advance outside PLAYING": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992342434
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994672042
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994926805
+      }
+    ],
+    "6.4 Write unit tests for end-of-round routing": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992342573
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994672877
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994926050
+      }
+    ],
+    "7.1 Add `resetPending` and implement `handleReadyKey(e)`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992342781
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994551290
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994666760
+      }
+    ],
+    "7.2 Write property test for reset emptying the board": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992342966
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994673831
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994924995
+      }
+    ],
+    "7.3 Write unit tests for the reset flow": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992343119
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994674744
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994923619
+      }
+    ],
+    "8. Checkpoint - controllers and state machine": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992343285
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994931305
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994933885
+      }
+    ],
+    "9.1 Restructure the `keydown` listener for ENTRY and READY-reset dispatch": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992343465
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994937261
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995018851
+      }
+    ],
+    "10.1 Implement `drawLeaderboard(board, x, topY, opts)`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992343624
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995022875
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995103917
+      }
+    ],
+    "10.2 Add the READY render branch (leaderboard + reset affordance + status)": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992343781
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995188333
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048066803
+      }
+    ],
+    "10.3 Add the ENTRY render branch": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992343955
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995108100
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995183851
+      }
+    ],
+    "10.4 Add leaderboard to the OVER and WIN render branches": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992344130
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048069834
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048128103
+      }
+    ],
+    "10.5 Write unit tests for rendering via render-helper spies": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992344298
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048132867
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048390516
+      }
+    ],
+    "11.1 Load the leaderboard at boot before the loop starts": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992344454
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048131883
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048391329
+      }
+    ],
+    "12. Final checkpoint - full feature": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791992344651
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048394896
+      },
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048468010
+      }
+    ],
+    "2. Implement the pure leaderboard logic core and expose it for tests": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993488018
+      }
+    ],
+    "4. Implement the persistence module over `localStorage`": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791993739929
+      }
+    ],
+    "5. Implement the entry controller and pure entry-key reducer": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994414786
+      }
+    ],
+    "7. Implement the reset controller for the READY screen": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994925336
+      }
+    ],
+    "6. Add the ENTRY state and intercept end-of-round transitions": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791994927015
+      }
+    ],
+    "9. Wire the single `keydown` handler to dispatch by state": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1791995019066
+      }
+    ],
+    "10. Implement leaderboard rendering": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048390880
+      }
+    ],
+    "11. Wire the boot sequence": [
+      {
+        "executionId": "27c8aeb6-01c5-424f-af01-02c7c21138f3",
+        "chatSessionId": "sess_89381db7-d9d5-4cde-adf6-8dd22ba91dff",
+        "timestamp": 1792048391492
+      }
+    ]
+  }
+}

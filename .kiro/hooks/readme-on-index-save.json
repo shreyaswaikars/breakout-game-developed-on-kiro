@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Update README on index.html Save",
+      "trigger": "PostFileSave",
+      "matcher": "index\\.html$",
+      "action": {
+        "type": "agent",
+        "prompt": "index.html was just saved. Read the current index.html and regenerate README.md at the workspace root so it accurately documents the current game. The README must include: the game name, how to play, controls, a features list, and any power-ups (omit the power-ups section only if the game truly has none). Create README.md if it doesn't exist. Keep the entire README under 60 lines. Only update README.md — do not change any other files."
+      }
+    }
+  ]
+}

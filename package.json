@@ -1,0 +1,12 @@
+{
+  "name": "arcade-brick-buster",
+  "version": "1.0.0",
+  "description": "Brick Buster — a single-file HTML5 canvas game. The game ships with zero runtime dependencies; the tooling below is dev-only and never referenced from index.html.",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "devDependencies": {
+    "fast-check": "^3.23.2"
+  }
+}

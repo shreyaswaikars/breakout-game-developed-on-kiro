@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Protect Steering Documents",
+      "description": "Block agent writes to steering documents",
+      "trigger": "PreToolUse",
+      "matcher": "fs_write|str_replace|fs_append|delete_file",
+      "action": {
+        "type": "command",
+        "command": "python -c \"import sys, json; d = json.load(sys.stdin); p = json.dumps(d.get('tool_input', {})).replace(chr(92), '/').replace('//', '/'); sys.exit(0) if '.kiro/steering' not in p else (sys.stderr.write('Steering files are human-owned. Ask the user to edit them.'), sys.exit(2))\""
+      },
+      "timeout": 10,
+      "enabled": true
+    }
+  ]
+}

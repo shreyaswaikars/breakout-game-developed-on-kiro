@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser=chrome"
+      ],
+      "env": { 
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/ubuntu/.Xauthority",
+        "XDG_RUNTIME_DIR": "/run/user/1000" 
+      },
+      "disabled": false
+    }
+  }
+}

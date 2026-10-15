@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brick Buster</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0a0a1a;
+    color: #00f0ff;
+    font-family: "Courier New", "Lucida Console", monospace;
+    height: 100%;
+  }
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 14px;
+  }
+  h1 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: #ff2079;
+    text-shadow:
+      0 0 8px rgba(255,32,121,0.9),
+      0 0 20px rgba(255,32,121,0.6),
+      0 0 40px rgba(255,32,121,0.35);
+  }
+  #game {
+    background: #050510;
+    border: 2px solid #ff2079;
+    border-radius: 4px;
+    box-shadow:
+      0 0 14px rgba(255,32,121,0.5),
+      0 0 48px rgba(0,240,255,0.25),
+      inset 0 0 24px rgba(0,240,255,0.08);
+    display: block;
+    cursor: none;
+  }
+  .hint {
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #f5f543;
+    text-shadow: 0 0 8px rgba(245,245,67,0.5);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>BRICK BUSTER</h1>
+    <canvas id="game" width="800" height="600"></canvas>
+    <div class="hint">Move: &larr; &rarr; or mouse &nbsp;&bull;&nbsp; Start / Restart: Space &nbsp;&bull;&nbsp; Pause: P</div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // ---- Theme (retro neon-on-dark) ----
+  // Tunable visual values live here so the look can be adjusted in one place.
+  const THEME = {
+    bg: "#0a0a1a",
+    pink: "#ff2079",
+    cyan: "#00f0ff",
+    yellow: "#f5f543",
+    dim: "#5a6a8a",
+    font: "'Courier New', 'Lucida Console', monospace",
+    scanlineAlpha: 0.06,
+    scanlineGap: 3
+  };
+
+  // ---- Game states ----
+  const STATE = { READY: "ready", PLAYING: "playing", PAUSED: "paused", ENTRY: "entry", OVER: "over", WIN: "win" };
+  let state = STATE.READY;
+
+  // ---- Leaderboard pure logic ----
+  // Plain functions over arrays/objects: no DOM, no localStorage, no canvas.
+  // A Score_Record is a plain object: { initials: "AAA", score: 12345 }.
+  const MAX_RECORDS = 10;
+  const MAX_SCORE = 999999999;
+  const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  // Req 1.8, 2.5, 2.6: structural + range validation. Returns boolean.
+  function isValidRecord(rec) {
+    return !!rec
+      && typeof rec.initials === "string"
+      && /^[A-Z]{3}$/.test(rec.initials)
+      && Number.isInteger(rec.score)
+      && rec.score >= 0
+      && rec.score <= MAX_SCORE;
+  }
+
+  // Req 2.1-2.4, 1.7, 6.2: insert, stable-sort descending by score, trim to 10.
+  // Returns a NEW array; does not mutate `board`. Returns `board` unchanged
+  // (copy) if `rec` is invalid (Req 1.8, 2.6 — the "leave unchanged" guarantee;
+  // the user-visible indication is raised by the caller).
+  function addRecord(board, rec) {
+    if (!isValidRecord(rec)) return board.slice();
+    const next = board.slice();
+    // Find first existing record with a strictly smaller score; insert before it.
+    // Scanning front-to-back and inserting before the first smaller score keeps
+    // equal scores in insertion order (earlier-added ranks higher) -> Req 2.4.
+    let i = 0;
+    while (i < next.length && next[i].score >= rec.score) i++;
+    next.splice(i, 0, rec);
+    return next.slice(0, MAX_RECORDS); // Req 2.1, 2.3, 1.7
+  }
+
+  // Req 3.3-3.5: qualification. `board` is sorted descending, so the lowest
+  // retained record is board[board.length - 1].
+  function qualifies(board, finalScore) {
+    if (!Number.isInteger(finalScore) || finalScore <= 0) return false; // Req 3.5
+    if (board.length < MAX_RECORDS) return true;                        // Req 3.3
+    return finalScore > board[board.length - 1].score;                 // Req 3.4
+  }
+
+  // Req 1.4, 6.4: produce the single stored string.
+  function serializeLeaderboard(board) {
+    return JSON.stringify(board);
+  }
+
+  // Req 1.3: parse + validate. Returns a sanitized array of valid records
+  // (ordered/trimmed), or [] if the input is not a valid leaderboard.
+  function deserializeLeaderboard(text) {
+    let parsed;
+    try { parsed = JSON.parse(text); } catch (_) { return []; }
+    if (!Array.isArray(parsed)) return [];
+    // Keep only structurally valid records, then re-order/trim defensively so a
+    // hand-edited or partially-corrupt store can't produce an out-of-order board.
+    const clean = parsed.filter(isValidRecord);
+    let board = [];
+    for (const rec of clean) board = addRecord(board, rec);
+    return board;
+  }
+
+  // Req 5.1, 5.2, 5.10: shift a letter within A–Z by `dir` (+1 next / -1 prev),
+  // wrapping Z→A for +1 and A→Z for -1. Always returns a single A–Z letter.
+  function cycleLetter(ch, dir) {
+    const idx = (LETTERS.indexOf(ch) + dir + 26) % 26;
+    return LETTERS[idx];
+  }
+
+  // Req 5.1–5.10, 6.1: PURE initials-entry reducer. Given an entry state
+  // `{ chars, cursor }` and a `keyEvent` descriptor, return the NEXT entry
+  // state as a brand-new object. This function NEVER touches the DOM, never
+  // calls preventDefault, and never mutates its `entryState` argument — that
+  // keeps it deterministic and property-testable in Node. The DOM wiring
+  // (preventDefault, dispatching, calling confirmEntry) is the job of
+  // handleEntryKey (Task 5.3), which layers over this reducer.
+  //
+  // Key descriptor contract — `keyEvent` is a plain object/value the reducer
+  // interprets without a real KeyboardEvent. It inspects `keyEvent.key`, a
+  // string that mirrors `KeyboardEvent.key`:
+  //   "ArrowUp"    -> cycle the letter at the cursor to the next letter
+  //                   (wrap Z→A); cursor unchanged.                     (Req 5.1)
+  //   "ArrowDown"  -> cycle the letter at the cursor to the previous letter
+  //                   (wrap A→Z); cursor unchanged.                     (Req 5.2)
+  //   "ArrowRight" -> advance the cursor; no-op at index 2.        (Req 5.3, 5.4)
+  //   "ArrowLeft"  -> retreat the cursor; no-op at index 0.        (Req 5.5, 5.6)
+  //   a single A–Z letter (any case) -> set the cursor char to the uppercased
+  //                   letter and advance the cursor; sticky at index 2
+  //                   (char still set, cursor stays).              (Req 5.7, 5.8)
+  //   " " / "Space" (confirm) -> reported to the caller via `confirm: true`
+  //                   on the returned object; letters/cursor are NOT mutated so
+  //                   confirmEntry() reads the final initials.          (Req 6.1)
+  //   anything else -> no-op: an unchanged copy of the entry state.     (Req 5.9)
+  //
+  // Returns `{ chars, cursor }` for every non-confirm key, plus `confirm: true`
+  // on the confirm (Space) key. `chars` is always a fresh 3-element array whose
+  // every element is a single A–Z letter (Req 5.10), and `cursor` is always in
+  // [0, 2]. The input `entryState` is left untouched.
+  function applyEntryKey(entryState, keyEvent) {
+    const chars = entryState.chars.slice(); // copy — never mutate the input
+    let cursor = entryState.cursor;
+    const k = keyEvent && keyEvent.key;
+
+    if (k === "ArrowUp") {                       // Req 5.1 — next letter, cursor fixed
+      chars[cursor] = cycleLetter(chars[cursor], +1);
+    } else if (k === "ArrowDown") {              // Req 5.2 — prev letter, cursor fixed
+      chars[cursor] = cycleLetter(chars[cursor], -1);
+    } else if (k === "ArrowRight") {             // Req 5.3 / 5.4 — right, no-op at 2
+      if (cursor < 2) cursor++;
+    } else if (k === "ArrowLeft") {              // Req 5.5 / 5.6 — left, no-op at 0
+      if (cursor > 0) cursor--;
+    } else if (typeof k === "string" && /^[a-zA-Z]$/.test(k)) {
+      chars[cursor] = k.toUpperCase();           // Req 5.7 / 5.8 — set + advance (sticky at 2)
+      if (cursor < 2) cursor++;
+    } else if (k === " " || k === "Space") {     // Req 6.1 — confirm, letters untouched
+      return { chars: chars, cursor: cursor, confirm: true };
+    }
+    // Any other key: no-op, returns the unchanged copy. (Req 5.9)
+    return { chars: chars, cursor: cursor };
+  }
+
+  // ---- Persistence module ----
+  // The only functions that touch `localStorage`. Both wrap the pure
+  // serialize/deserialize helpers in try/catch so a missing, corrupt, or
+  // inaccessible Store never lets an exception escape and break gameplay.
+  const STORE_KEY = "brickBuster.leaderboard.v1"; // single named key (Req 1.4, 6.4, 9.7)
+
+  // Req 1.1, 1.2, 1.3, 1.6, 7.5: read + sanitize the Leaderboard.
+  // Returns { board, ok }. `ok === false` means the Store was inaccessible;
+  // `board` is always a valid (ordered/trimmed) array, defaulting to [] when
+  // the key is missing, the data is corrupt, or the Store cannot be read.
+  function loadLeaderboard() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY); // null when missing -> Req 1.2
+      if (raw == null) return { board: [], ok: true };
+      return { board: deserializeLeaderboard(raw), ok: true }; // Req 1.3 handled inside
+    } catch (_) {
+      // Store inaccessible (disabled/blocked). Req 1.6, 7.5.
+      return { board: [], ok: false };
+    }
+  }
+
+  // Req 1.4, 1.5, 6.4, 6.5, 9.7, 9.8: persist the Leaderboard under the single
+  // key. Returns true on success, false on any failure (quota/inaccessible);
+  // the caller keeps the in-memory board and shows an indication on failure.
+  function saveLeaderboard(board) {
+    try {
+      localStorage.setItem(STORE_KEY, serializeLeaderboard(board));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // ---- Entry controller ----
+  // Module-level control/entry state plus beginEntry(). The in-memory
+  // Leaderboard reference lives here so the entry/confirm/reset controllers and
+  // the boot sequence that are added by later tasks share a single source of
+  // truth. addRecord/deserializeLeaderboard reassign this reference.
+  let leaderboard = [];
+
+  let entry = { chars: ["A", "A", "A"], cursor: 0 }; // Initials + Initial_Cursor
+  let endingReason = null;     // "over" | "win" — why the round ended (Req 6.6)
+  let highlightedEntry = null; // the Highlighted_Entry record reference (Req 6.3, 8.4, 8.5)
+  let statusMessage = null;    // transient user-visible indication (Req 1.5, 1.8, 6.5)
+
+  // Req 4.1, 4.4: reset the three Initials to "A", the Initial_Cursor to the
+  // first slot, and enter the Entry_State. STATE.ENTRY is added by a later task;
+  // until then it is undefined, which is harmless (no throw).
+  function beginEntry() {
+    entry.chars = ["A", "A", "A"]; // Req 4.4
+    entry.cursor = 0;              // Req 4.4
+    state = STATE.ENTRY;           // Req 4.1
+  }
+
+  // DOM wiring over the pure applyEntryKey reducer. Dispatches the real
+  // KeyboardEvent into the reducer (which reads e.key), applies the returned
+  // { chars, cursor } back onto the module-level `entry`, and calls
+  // preventDefault() for every recognized key so arrows/letters/Space don't
+  // scroll the page or trigger other handlers. Unrecognized keys are a reducer
+  // no-op and are left to the browser (no preventDefault). On the confirm
+  // signal (Space), the reducer leaves the letters untouched and reports
+  // `confirm: true`; we hand off to confirmEntry() to read the final initials.
+  // (Req 5.1–5.9, 6.1)
+  function handleEntryKey(e) {
+    const k = e && e.key;
+    const recognized =
+      k === "ArrowUp" ||
+      k === "ArrowDown" ||
+      k === "ArrowRight" ||
+      k === "ArrowLeft" ||
+      (typeof k === "string" && /^[a-zA-Z]$/.test(k)) ||
+      k === " " ||
+      k === "Space";
+    if (recognized) e.preventDefault(); // Req 5.1–5.8, 6.1
+
+    const next = applyEntryKey(entry, e);
+    entry.chars = next.chars;
+    entry.cursor = next.cursor;
+
+    if (next.confirm === true) confirmEntry(); // Req 6.1 — letters already final
+  }
+
+  // Confirm path (Req 6). Builds a Score_Record from the final Initials and the
+  // Game's current score. Because entry.chars always holds A–Z letters by
+  // construction (Req 5.10), isValidRecord can only fail on the score bound, so
+  // the else branch is defensive (Req 1.8). On a valid record we insert it into
+  // the ordered/trimmed Leaderboard (Req 6.2), mark it as the Highlighted_Entry
+  // by reference identity (Req 6.3) so the renderer emphasizes exactly that one
+  // record even on tied scores, then persist (Req 6.4) and surface a
+  // user-visible indication if the write fails (Req 6.5). Finally we route to
+  // the terminal state recorded when the round ended (Req 6.6).
+  function confirmEntry() {
+    const rec = { initials: entry.chars.join(""), score: score }; // Req 6.1
+    if (isValidRecord(rec)) {
+      leaderboard = addRecord(leaderboard, rec); // Req 6.2 (ordered, trimmed)
+      highlightedEntry = rec;                    // Req 6.3 (reference identity)
+      if (!saveLeaderboard(leaderboard)) {       // Req 6.4
+        statusMessage = "SCORE NOT SAVED";       // Req 6.5
+      }
+    } else {
+      statusMessage = "INVALID ENTRY";           // Req 1.8 defensive (initials are A-Z by construction)
+    }
+    state = (endingReason === "over") ? STATE.OVER : STATE.WIN; // Req 6.6
+  }
+
+  // ---- Reset controller (READY-only) ----
+  // Whether a Reset_Confirmation is currently showing on the start screen.
+  let resetPending = false; // (Req 9)
+
+  // handleReadyKey dispatches start-screen keys for the leaderboard reset flow.
+  // While a confirmation is pending, "Y" clears the board (and persists it),
+  // "N" cancels, and every other key (including Space) is inert and keeps the
+  // prompt up. While no confirmation is pending, "R" opens the confirmation.
+  // Returns true whenever the key was handled here, so the main keydown handler
+  // short-circuits before the Space-to-start branch — this is what keeps Space
+  // inert while a confirmation is pending (Req 9.5).
+  function handleReadyKey(e) {
+    const k = e && e.key;
+    if (resetPending) {
+      // Reset_Confirmation pending (Req 9.3–9.11)
+      if (k === "y" || k === "Y") {       // Req 9.6, 9.7, 9.11
+        leaderboard = [];
+        highlightedEntry = null;
+        resetPending = false;
+        if (!saveLeaderboard(leaderboard)) statusMessage = "RESET NOT SAVED"; // Req 9.8
+      } else if (k === "n" || k === "N") { // Req 9.9
+        resetPending = false;
+      }
+      // Space while pending: inert, stays in READY (Req 9.5). Any other key:
+      // no-op (Req 9.10). Both are achieved by taking no action and NOT falling
+      // through to start logic — the `return true` below enforces that.
+      return true; // signal: handled, do not run start-game logic (Req 9.4, 9.5)
+    }
+    if (k === "r" || k === "R") {          // Req 9.2
+      resetPending = true;
+      return true;
+    }
+    return false; // not handled here; allow Space-to-start etc.
+  }
+
+  // ---- Paddle ----
+  const paddle = {
+    w: 110,
+    h: 14,
+    x: (W - 110) / 2,
+    y: H - 40,
+    speed: 8
+  };
+
+  // ---- Ball ----
+  const BALL_BASE_SPEED = 5.5;
+  const ball = {
+    r: 8,
+    x: W / 2,
+    y: paddle.y - 8,
+    dx: 0,
+    dy: 0,
+    speed: BALL_BASE_SPEED
+  };
+
+  // ---- Bricks ----
+  const BRICK = {
+    rows: 5,
+    cols: 10,
+    w: 70,
+    h: 24,
+    padding: 8,
+    offsetTop: 70,
+    offsetLeft: 25
+  };
+  const ROW_COLORS = ["#ff4d6d", "#ff922b", "#ffe066", "#51cf66", "#4dabf7"];
+  let bricks = [];
+  let totalBricks = 0;
+  let destroyed = 0;
+  let score = 0;
+  let combo = 0; // bricks destroyed since the ball last touched the paddle
+  const START_LIVES = 3;
+  let lives = START_LIVES;
+
+  // ---- Particles ----
+  let particles = [];
+
+  // ---- Input ----
+  const keys = { left: false, right: false };
+
+  // ---- Audio (Web Audio API, synthesized - no files) ----
+  let audioCtx = null;
+
+  function initAudio() {
+    if (audioCtx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+
+  // Play a simple synthesized tone with an envelope.
+  function playTone(opts) {
+    if (!audioCtx) return;
+    // Browsers may suspend the context until a user gesture; resume if needed.
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = opts.type || "sine";
+    osc.frequency.setValueAtTime(opts.freq, now);
+    if (opts.freqEnd) {
+      osc.frequency.exponentialRampToValueAtTime(opts.freqEnd, now + opts.duration);
+    }
+
+    const vol = opts.volume != null ? opts.volume : 0.15;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(vol, now + 0.005); // quick attack
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + opts.duration); // decay
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + opts.duration + 0.02);
+  }
+
+  function sfxPaddle() {
+    playTone({ type: "square", freq: 220, freqEnd: 180, duration: 0.08, volume: 0.12 });
+  }
+
+  function sfxBrick() {
+    // Pitch rises with the combo for a satisfying chain.
+    const base = 440 + Math.min(combo, 12) * 30;
+    playTone({ type: "triangle", freq: base, freqEnd: base * 1.5, duration: 0.07, volume: 0.14 });
+  }
+
+  function sfxGameOver() {
+    // Descending two-tone sting.
+    playTone({ type: "sawtooth", freq: 300, freqEnd: 120, duration: 0.35, volume: 0.16 });
+    if (audioCtx) {
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(200, t + 0.18);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.6);
+      gain.gain.setValueAtTime(0.0001, t + 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.16, t + 0.19);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t + 0.18);
+      osc.stop(t + 0.62);
+    }
+  }
+
+  function sfxWin() {
+    // Quick ascending arpeggio.
+    const notes = [523, 659, 784, 1047];
+    notes.forEach(function (f, i) {
+      if (!audioCtx) return;
+      const t = audioCtx.currentTime + i * 0.1;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(f, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.15, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    });
+  }
+
+  function buildBricks() {
+    bricks = [];
+    totalBricks = 0;
+    for (let r = 0; r < BRICK.rows; r++) {
+      const row = [];
+      for (let c = 0; c < BRICK.cols; c++) {
+        const x = BRICK.offsetLeft + c * (BRICK.w + BRICK.padding);
+        const y = BRICK.offsetTop + r * (BRICK.h + BRICK.padding);
+        row.push({ x, y, alive: true, color: ROW_COLORS[r % ROW_COLORS.length] });
+        totalBricks++;
+      }
+      bricks.push(row);
+    }
+  }
+
+  function resetBallOnPaddle() {
+    ball.speed = BALL_BASE_SPEED;
+    ball.x = paddle.x + paddle.w / 2;
+    ball.y = paddle.y - ball.r - 1;
+    ball.dx = 0;
+    ball.dy = 0;
+  }
+
+  function launchBall() {
+    const angle = (Math.random() * 0.6 - 0.3); // small random horizontal lean
+    ball.dx = ball.speed * Math.sin(angle);
+    ball.dy = -ball.speed * Math.cos(angle);
+  }
+
+  function newGame() {
+    buildBricks();
+    destroyed = 0;
+    score = 0;
+    combo = 0;
+    lives = START_LIVES;
+    particles = [];
+    paddle.x = (W - paddle.w) / 2;
+    resetBallOnPaddle();
+  }
+
+  function startPlaying() {
+    highlightedEntry = null; // Req 8.5: clear Highlighted_Entry when entering PLAYING
+    statusMessage = null;    // clear transient user-visible indication
+    newGame();
+    state = STATE.PLAYING;
+    launchBall();
+  }
+
+  // ---- Collision helpers ----
+  function circleRectHit(cx, cy, r, rx, ry, rw, rh) {
+    const nearestX = Math.max(rx, Math.min(cx, rx + rw));
+    const nearestY = Math.max(ry, Math.min(cy, ry + rh));
+    const ddx = cx - nearestX;
+    const ddy = cy - nearestY;
+    return (ddx * ddx + ddy * ddy) <= r * r;
+  }
+
+  function setBallSpeed(newSpeed) {
+    const mag = Math.hypot(ball.dx, ball.dy) || 1;
+    ball.speed = newSpeed;
+    ball.dx = (ball.dx / mag) * newSpeed;
+    ball.dy = (ball.dy / mag) * newSpeed;
+  }
+
+  // ---- Particles ----
+  function spawnParticles(x, y, color) {
+    const count = 10;
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 2.5;
+      particles.push({
+        x: x,
+        y: y,
+        dx: Math.cos(angle) * speed,
+        dy: Math.sin(angle) * speed,
+        life: 1, // 1 -> 0
+        decay: 0.02 + Math.random() * 0.03,
+        size: 2 + Math.random() * 2,
+        color: color
+      });
+    }
+  }
+
+  function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.dx;
+      p.y += p.dy;
+      p.dy += 0.05; // slight gravity
+      p.dx *= 0.98; // drag
+      p.life -= p.decay;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function drawParticles() {
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Req 3.1, 3.2, 3.6, 3.7, 4.1, 4.6: single funnel for the two end-of-round
+  // transitions. `reason` is "over" or "win". Records the ending reason (so the
+  // terminal state can be restored after initials entry — Req 6.6), plays the
+  // existing sting once, then either invites initials entry on a Qualifying_Score
+  // or drops straight into the terminal OVER/WIN state.
+  function endRound(reason) {
+    endingReason = reason;
+    if (reason === "over") sfxGameOver();
+    else sfxWin();
+    if (qualifies(leaderboard, score)) {
+      beginEntry();                                        // Req 3.6, 4.1 -> STATE.ENTRY
+    } else {
+      state = (reason === "over") ? STATE.OVER : STATE.WIN; // Req 3.7, 4.6
+    }
+  }
+
+  // ---- Update ----
+  function update() {
+    if (state !== STATE.PLAYING) return;
+
+    // Paddle movement (keyboard)
+    if (keys.left) paddle.x -= paddle.speed;
+    if (keys.right) paddle.x += paddle.speed;
+    paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+
+    // Ball movement
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Wall collisions
+    if (ball.x - ball.r <= 0) {
+      ball.x = ball.r;
+      ball.dx = Math.abs(ball.dx);
+    } else if (ball.x + ball.r >= W) {
+      ball.x = W - ball.r;
+      ball.dx = -Math.abs(ball.dx);
+    }
+    if (ball.y - ball.r <= 0) {
+      ball.y = ball.r;
+      ball.dy = Math.abs(ball.dy);
+    }
+
+    // Paddle collision
+    if (
+      ball.dy > 0 &&
+      circleRectHit(ball.x, ball.y, ball.r, paddle.x, paddle.y, paddle.w, paddle.h)
+    ) {
+      // Reflect based on where it hit the paddle
+      const hit = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2); // -1..1
+      const clamped = Math.max(-1, Math.min(1, hit));
+      const maxAngle = Math.PI / 3; // 60 degrees
+      const angle = clamped * maxAngle;
+      ball.dx = ball.speed * Math.sin(angle);
+      ball.dy = -ball.speed * Math.cos(angle);
+      ball.y = paddle.y - ball.r - 0.5;
+      combo = 0; // paddle contact breaks the combo chain
+      sfxPaddle();
+    }
+
+    // Brick collisions
+    for (let r = 0; r < bricks.length; r++) {
+      for (let c = 0; c < bricks[r].length; c++) {
+        const b = bricks[r][c];
+        if (!b.alive) continue;
+        if (circleRectHit(ball.x, ball.y, ball.r, b.x, b.y, BRICK.w, BRICK.h)) {
+          b.alive = false;
+          destroyed++;
+          combo++; // each brick in the chain raises the multiplier
+          score += 10 * combo;
+          spawnParticles(b.x + BRICK.w / 2, b.y + BRICK.h / 2, b.color);
+          sfxBrick();
+
+          // Decide bounce direction: compare overlap on each axis
+          const prevX = ball.x - ball.dx;
+          const prevY = ball.y - ball.dy;
+          const wasOutsideX = prevX < b.x || prevX > b.x + BRICK.w;
+          const wasOutsideY = prevY < b.y || prevY > b.y + BRICK.h;
+          if (wasOutsideY && !wasOutsideX) {
+            ball.dy = -ball.dy;
+          } else if (wasOutsideX && !wasOutsideY) {
+            ball.dx = -ball.dx;
+          } else {
+            ball.dy = -ball.dy;
+          }
+
+          // Speed up every 5 bricks destroyed
+          if (destroyed % 5 === 0) {
+            setBallSpeed(ball.speed + 0.6);
+          }
+
+          if (destroyed >= totalBricks) {
+            endRound("win");
+          }
+          // Only handle one brick per frame to keep bounces clean
+          return;
+        }
+      }
+    }
+
+    // Ball fell below paddle -> lose a life
+    if (ball.y - ball.r > H) {
+      lives--;
+      combo = 0;
+      if (lives <= 0) {
+        endRound("over");
+      } else {
+        // Reset ball and paddle, then relaunch
+        paddle.x = (W - paddle.w) / 2;
+        resetBallOnPaddle();
+        launchBall();
+      }
+    }
+  }
+
+  // ---- Draw ----
+  function drawBricks() {
+    for (let r = 0; r < bricks.length; r++) {
+      for (let c = 0; c < bricks[r].length; c++) {
+        const b = bricks[r][c];
+        if (!b.alive) continue;
+        ctx.fillStyle = b.color;
+        roundRect(b.x, b.y, BRICK.w, BRICK.h, 4);
+        ctx.fill();
+        // subtle top highlight
+        ctx.fillStyle = "rgba(255,255,255,0.18)";
+        ctx.fillRect(b.x + 3, b.y + 3, BRICK.w - 6, 4);
+      }
+    }
+  }
+
+  function drawPaddle() {
+    ctx.fillStyle = "#dfe8ff";
+    roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 7);
+    ctx.fill();
+  }
+
+  function drawBall() {
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.closePath();
+  }
+
+  function drawHeart(cx, cy, size, filled) {
+    const s = size;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + s * 0.3);
+    ctx.bezierCurveTo(cx, cy, cx - s * 0.5, cy - s * 0.1, cx - s * 0.5, cy - s * 0.3);
+    ctx.bezierCurveTo(cx - s * 0.5, cy - s * 0.6, cx - s * 0.2, cy - s * 0.6, cx, cy - s * 0.35);
+    ctx.bezierCurveTo(cx + s * 0.2, cy - s * 0.6, cx + s * 0.5, cy - s * 0.6, cx + s * 0.5, cy - s * 0.3);
+    ctx.bezierCurveTo(cx + s * 0.5, cy - s * 0.1, cx, cy, cx, cy + s * 0.3);
+    ctx.closePath();
+    if (filled) {
+      ctx.save();
+      ctx.fillStyle = THEME.pink;
+      ctx.shadowColor = THEME.pink;
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.strokeStyle = "rgba(255,32,121,0.3)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+  }
+
+  function drawHUD() {
+    // Top-left: "LIVES" label + hearts
+    const heartSize = 18;
+    const heartGap = 24;
+    const heartY = 24;
+    const heartStartX = 26;
+
+    ctx.textAlign = "left";
+    glowText("LIVES", 16, 20, THEME.cyan, "bold 12px " + THEME.font, 8);
+    for (let i = 0; i < START_LIVES; i++) {
+      drawHeart(heartStartX + i * heartGap, heartY + 14, heartSize, i < lives);
+    }
+
+    // Top-left (below hearts): bricks remaining
+    glowText(
+      "BRICKS " + (totalBricks - destroyed),
+      16, heartY + 44, THEME.dim, "13px " + THEME.font, 6
+    );
+
+    // Top-right: score, with combo multiplier below it
+    ctx.textAlign = "right";
+    glowText("SCORE", W - 16, 20, THEME.cyan, "bold 12px " + THEME.font, 8);
+    glowText(String(score).padStart(6, "0"), W - 16, 42, THEME.yellow, "bold 22px " + THEME.font, 12);
+
+    if (combo >= 2) {
+      glowText("COMBO X" + combo, W - 16, 66, THEME.pink, "bold 15px " + THEME.font, 12);
+    }
+
+    ctx.textAlign = "left";
+  }
+
+  function drawCenterText(lines) {
+    ctx.save();
+    ctx.fillStyle = "rgba(5,5,16,0.78)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = "center";
+    let y = H / 2 - (lines.length - 1) * 24;
+    for (const line of lines) {
+      glowText(
+        line.text,
+        W / 2, y,
+        line.color || THEME.cyan,
+        line.font || ("20px " + THEME.font),
+        line.blur != null ? line.blur : 14
+      );
+      y += line.gap || 44;
+    }
+    ctx.restore();
+    ctx.textAlign = "left";
+  }
+
+  // Draw text with a neon glow. Resets shadow state afterward.
+  function glowText(text, x, y, color, font, blur) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = font;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur != null ? blur : 12;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  // CRT-style scanlines drawn over the whole canvas.
+  function drawScanlines() {
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0," + THEME.scanlineAlpha + ")";
+    for (let y = 0; y < H; y += THEME.scanlineGap) {
+      ctx.fillRect(0, y, W, 1);
+    }
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.arcTo(x + w, y, x + w, y + h, radius);
+    ctx.arcTo(x + w, y + h, x, y + h, radius);
+    ctx.arcTo(x, y + h, x, y, radius);
+    ctx.arcTo(x, y, x + w, y, radius);
+    ctx.closePath();
+  }
+
+  function drawPauseOverlay() {
+    ctx.fillStyle = "rgba(5,5,16,0.72)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.textAlign = "center";
+    glowText("PAUSED", W / 2, H / 2 - 16, THEME.cyan, "bold 48px " + THEME.font, 20);
+    glowText("PRESS P TO RESUME", W / 2, H / 2 + 30, THEME.yellow, "18px " + THEME.font, 10);
+    ctx.textAlign = "left";
+  }
+
+  // Draws up to 10 rows: "RANK  INI  SCORE". The record === highlightedEntry is
+  // emphasized in THEME.yellow with a stronger glow; all others use THEME.cyan.
+  function drawLeaderboard(board, x, topY, opts) {
+    const lineH = (opts && opts.lineH) || 26;
+    ctx.textAlign = "left";
+    if (board.length === 0) {
+      glowText("NO HIGH SCORES YET", x, topY, THEME.dim, "16px " + THEME.font, 8);
+      return;
+    }
+    for (let i = 0; i < board.length; i++) {
+      const rec = board[i];
+      const isHi = rec === highlightedEntry;
+      const color = isHi ? THEME.yellow : THEME.cyan;
+      const rank = String(i + 1).padStart(2, "0");
+      const line = rank + "  " + rec.initials + "   " + String(rec.score).padStart(6, "0");
+      glowText(line, x, topY + i * lineH, color, "16px " + THEME.font, isHi ? 14 : 8);
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    drawBricks();
+    drawParticles();
+    drawPaddle();
+    drawBall();
+    drawHUD();
+
+    if (state === STATE.READY) {
+      // Blink the prompt for an arcade "insert coin" feel.
+      const showPrompt = Math.floor(Date.now() / 500) % 2 === 0;
+      const lines = [
+        { text: "BRICK BUSTER", color: THEME.pink, font: "bold 48px " + THEME.font, gap: 44, blur: 24 },
+        { text: "NO BRICK LEFT STANDING", color: THEME.cyan, font: "16px " + THEME.font, gap: 70, blur: 10 }
+      ];
+      if (showPrompt) {
+        lines.push({ text: "PRESS SPACE TO START", color: THEME.yellow, font: "bold 22px " + THEME.font });
+      }
+      // drawCenterText paints the translucent overlay and the centered
+      // title/prompt lines; keep it, then layer the leaderboard beneath. (Req 7)
+      drawCenterText(lines);
+
+      // Leaderboard, left-aligned beneath the title/prompt. (Req 7.1-7.4)
+      // drawLeaderboard handles the empty-board message and highlight itself.
+      drawLeaderboard(leaderboard, W / 2 - 120, 360);
+
+      ctx.textAlign = "center";
+      if (!resetPending) {
+        // Reset_Option hint while no confirmation is pending. (Req 9.1)
+        glowText("R: RESET SCORES", W / 2, H - 46, THEME.dim, "16px " + THEME.font, 8);
+      } else {
+        // Reset_Confirmation: states that confirming clears all scores and
+        // shows the Y/N keys. (Req 9.2, 9.3)
+        glowText(
+          "CLEAR ALL SCORES?   Y = YES   N = NO",
+          W / 2, H - 46, THEME.pink, "bold 16px " + THEME.font, 12
+        );
+      }
+      // Transient user-visible indication near the bottom. (Req 7.5, 9.8)
+      if (statusMessage) {
+        glowText(statusMessage, W / 2, H - 22, THEME.pink, "14px " + THEME.font, 10);
+      }
+      ctx.textAlign = "left";
+    } else if (state === STATE.PAUSED) {
+      drawPauseOverlay();
+    } else if (state === STATE.ENTRY) {
+      // Dim the field with the same translucent overlay used by the end
+      // screens, then draw the arcade initials-entry prompt. (Req 4.2, 4.3)
+      ctx.save();
+      ctx.fillStyle = "rgba(5,5,16,0.78)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.textAlign = "center";
+
+      glowText("NEW HIGH SCORE!", W / 2, H / 2 - 110, THEME.pink, "bold 40px " + THEME.font, 22);
+      glowText("SCORE " + String(score).padStart(6, "0"), W / 2, H / 2 - 56, THEME.cyan, "bold 24px " + THEME.font, 12);
+
+      // Three initial slots, evenly spaced and centered. The slot at
+      // entry.cursor is emphasized (brighter THEME.yellow + stronger glow)
+      // with an underline marker beneath it so the Initial_Cursor is visible.
+      const slotGap = 80;
+      const slotsY = H / 2 + 20;
+      const startX = W / 2 - slotGap;
+      for (let i = 0; i < 3; i++) {
+        const sx = startX + i * slotGap;
+        const atCursor = i === entry.cursor;
+        const color = atCursor ? THEME.yellow : THEME.cyan;
+        glowText(entry.chars[i], sx, slotsY, color, "bold 56px " + THEME.font, atCursor ? 26 : 10);
+        if (atCursor) {
+          // Underline marker directly beneath the active slot.
+          glowText("^", sx, slotsY + 36, THEME.yellow, "bold 28px " + THEME.font, 18);
+        }
+      }
+
+      glowText(
+        "UP/DOWN LETTER   LEFT/RIGHT MOVE   SPACE OK",
+        W / 2, H / 2 + 120, THEME.dim, "16px " + THEME.font, 8
+      );
+
+      ctx.restore();
+      ctx.textAlign = "left";
+    } else if (state === STATE.OVER) {
+      drawCenterText([
+        { text: "GAME OVER", color: THEME.pink, font: "bold 44px " + THEME.font, gap: 54, blur: 20 },
+        { text: "SCORE " + String(score).padStart(6, "0"), color: THEME.yellow, font: "bold 24px " + THEME.font, gap: 44 },
+        { text: "PRESS SPACE TO RESTART", color: THEME.cyan, font: "18px " + THEME.font }
+      ]);
+
+      // Leaderboard beneath the result lines. drawLeaderboard handles the
+      // empty-board message (Req 8.3) and highlights the Highlighted_Entry in
+      // THEME.yellow (Req 8.4) using glowText + THEME (Req 8.1, 8.2, 8.6).
+      drawLeaderboard(leaderboard, W / 2 - 120, 390);
+
+      // Transient user-visible indication (e.g. "SCORE NOT SAVED") near the
+      // bottom. (Req 6.5)
+      if (statusMessage) {
+        ctx.textAlign = "center";
+        glowText(statusMessage, W / 2, H - 22, THEME.pink, "14px " + THEME.font, 10);
+        ctx.textAlign = "left";
+      }
+    } else if (state === STATE.WIN) {
+      drawCenterText([
+        { text: "YOU WIN!", color: THEME.cyan, font: "bold 46px " + THEME.font, gap: 54, blur: 22 },
+        { text: "SCORE " + String(score).padStart(6, "0"), color: THEME.yellow, font: "bold 24px " + THEME.font, gap: 44 },
+        { text: "PRESS SPACE TO PLAY AGAIN", color: THEME.pink, font: "18px " + THEME.font }
+      ]);
+
+      // Leaderboard beneath the result lines. drawLeaderboard handles the
+      // empty-board message (Req 8.3) and highlights the Highlighted_Entry in
+      // THEME.yellow (Req 8.4) using glowText + THEME (Req 8.1, 8.2, 8.6).
+      drawLeaderboard(leaderboard, W / 2 - 120, 390);
+
+      // Transient user-visible indication (e.g. "SCORE NOT SAVED") near the
+      // bottom. (Req 6.5)
+      if (statusMessage) {
+        ctx.textAlign = "center";
+        glowText(statusMessage, W / 2, H - 22, THEME.pink, "14px " + THEME.font, 10);
+        ctx.textAlign = "left";
+      }
+    }
+
+    drawScanlines();
+  }
+
+  // ---- Main loop ----
+  function loop() {
+    update();
+    if (state === STATE.PLAYING) updateParticles();
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---- Input handlers ----
+  document.addEventListener("keydown", function (e) {
+    // Paddle arrows only matter during play; keep existing behavior but guard
+    // so movement flags never set outside PLAYING (keeps ENTRY/READY free of
+    // accidental paddle motion). (Req 4.5)
+    if (state === STATE.PLAYING) {
+      if (e.key === "ArrowLeft" || e.key === "Left") keys.left = true;
+      if (e.key === "ArrowRight" || e.key === "Right") keys.right = true;
+    }
+
+    // ENTRY: route all input to the initials-entry handler. (Req 5.*, 6.1)
+    if (state === STATE.ENTRY) {
+      handleEntryKey(e);
+      return;
+    }
+
+    // READY: consult the reset controller first. If it handled the key, short-
+    // circuit before the Space-to-start branch so Space stays inert while a
+    // Reset_Confirmation is pending. (Req 9.2, 9.5)
+    if (state === STATE.READY) {
+      if (handleReadyKey(e)) {
+        if (e.code === "Space") e.preventDefault();
+        return;
+      }
+    }
+
+    if (e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      initAudio(); // unlock audio on first user gesture
+      if (state === STATE.READY || state === STATE.OVER || state === STATE.WIN) {
+        startPlaying();
+      }
+    }
+    if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      if (state === STATE.PLAYING) {
+        state = STATE.PAUSED;
+      } else if (state === STATE.PAUSED) {
+        state = STATE.PLAYING;
+      }
+    }
+  });
+
+  document.addEventListener("keyup", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "Left") keys.left = false;
+    if (e.key === "ArrowRight" || e.key === "Right") keys.right = false;
+  });
+
+  // Mouse control
+  canvas.addEventListener("mousemove", function (e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    paddle.x = mouseX - paddle.w / 2;
+    paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
+    // Keep ball glued to paddle while waiting to launch
+    if (state === STATE.READY) {
+      ball.x = paddle.x + paddle.w / 2;
+    }
+  });
+
+  // ---- Boot ----
+  const loaded = loadLeaderboard();
+  leaderboard = loaded.board;   // [] on missing/corrupt/inaccessible (Req 1.2, 1.3, 1.6)
+  newGame();
+  loop();
+
+  // ---- Node test export (no-op in the browser) ----
+  // Expose the pure leaderboard logic for Node-based tests. `module` is
+  // undefined in the browser, so this guard is a no-op there and never affects
+  // the running game. In Node (where the IIFE source is evaluated with a
+  // `module` object in scope) it publishes the single source of truth for the
+  // tested pure core. `applyEntryKey` is added here by Task 5.5 once it exists.
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      MAX_RECORDS: MAX_RECORDS,
+      MAX_SCORE: MAX_SCORE,
+      LETTERS: LETTERS,
+      isValidRecord: isValidRecord,
+      addRecord: addRecord,
+      qualifies: qualifies,
+      serializeLeaderboard: serializeLeaderboard,
+      deserializeLeaderboard: deserializeLeaderboard,
+      cycleLetter: cycleLetter,
+      applyEntryKey: applyEntryKey
+    };
+  }
+})();
+</script>
+</body>
+</html>
